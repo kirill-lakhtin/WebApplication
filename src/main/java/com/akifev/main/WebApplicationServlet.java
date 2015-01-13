@@ -12,7 +12,8 @@ public class WebApplicationServlet extends HttpServlet {
     ProductService ps = new ProductService();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<ProductEntity> productEntityList = ps.getAll();
+        //лишний код=)
+        //List<ProductEntity> productEntityList = ps.getAll();
         req.setAttribute("items", ps.getAll());
         req.setCharacterEncoding("utf-8");
         req.getRequestDispatcher("/index.jsp").forward(req, resp);
@@ -24,7 +25,8 @@ public class WebApplicationServlet extends HttpServlet {
         if(req.getParameter("form").equals("create")){
             create(req);
         }else{
-            Map<String, String> criterions = new HashMap();
+            //new HashMap == new HashMap<Object,Object>
+            Map<String, String> criterions = new HashMap<>();
             criterions.put("name", req.getParameter("name"));
             criterions.put("category_name", req.getParameter("category_name"));
             criterions.put("price_from", req.getParameter("price_from"));

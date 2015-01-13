@@ -7,8 +7,9 @@ import java.util.*;
 
 
 public class ProductService {
-    public EntityManager entity = Persistence.createEntityManagerFactory("unit").createEntityManager();
-    public ProductEntity get(int id){
+    private static final String PERSISTENCE_UNIT_NAME = "unit";
+    private EntityManager entity = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME).createEntityManager();
+    private ProductEntity get(int id){
         return entity.find(ProductEntity.class, id);
     }
 
@@ -16,6 +17,7 @@ public class ProductService {
         entity.getTransaction().begin();
         TypedQuery<CategoryEntity> typedQuery = searchCategoryByName(product);
         List<CategoryEntity> result = typedQuery.getResultList();
+        //ты ожидаешь только 1 категорию в результате запроса - лучше typedQuery.getSingleResult()
         if(result.size()!=0){
             product.setCategoryEntity(result.get(0));
         }
@@ -37,18 +39,25 @@ public class ProductService {
         CriteriaBuilder cb = entity.getCriteriaBuilder();
         CriteriaQuery<ProductEntity> criteriaQuery = cb.createQuery(ProductEntity.class);
         Root<ProductEntity> root = criteriaQuery.from(ProductEntity.class);
-        List<Predicate> predicates = new ArrayList();
-        if(!criterions.get("name").equals(""))
+        List<Predicate> predicates = new ArrayList<>();
+        if(!criterions.get("name").isEmpty()) {
             predicates.add(cb.like(cb.upper(root.get(ProductEntity_.name)), criterions.get("name").toUpperCase() + "%"));
-        if(!criterions.get("price_from").equals(""))
+        }
+        if(!criterions.get("price_from").isEmpty()) {
+            //А зачем нужны метамодели? В метода searchCategoryByName ты без них прекрасно обходишься.
+            //почему не:
+            //predicates.add(cb.gt(root.get("price").as(Integer.class), Integer.parseInt(criterions.get("price_from"))));
             predicates.add(cb.gt(root.get(ProductEntity_.price), Integer.parseInt(criterions.get("price_from"))));
-        if(!criterions.get("price_to").equals(""))
+        }
+        if(!criterions.get("price_to").isEmpty()) {
             predicates.add(cb.lt(root.get(ProductEntity_.price), Integer.parseInt(criterions.get("price_to"))));
-        if(!criterions.get("category_name").equals("")) {
+        }
+        if(!criterions.get("category_name").isEmpty()) {
             Join<ProductEntity, CategoryEntity> join = root.join(ProductEntity_.categoryEntity);
             predicates.add(cb.like(cb.upper(join.get(CategoryEntity_.name)), criterions.get("category_name").toUpperCase() + "%"));
         }
-        criteriaQuery.where(predicates.toArray(new Predicate[]{}));
+        //Посмотри, как toArray внутри реализован
+        criteriaQuery.where(predicates.toArray(new Predicate[predicates.size()]));
         TypedQuery<ProductEntity> typedQuery = entity.createQuery(criteriaQuery);
         return typedQuery.getResultList();
 
@@ -61,6 +70,8 @@ public class ProductService {
 
     public void delete(ProductEntity product){
         entity.getTransaction().begin();
+        //упадет, если product - detached entity. (см. джавадок remove)
+        //лучше  entity.remove(get(product.getId());
         entity.remove(product);
         entity.getTransaction().commit();
     }

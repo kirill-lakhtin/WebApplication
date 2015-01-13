@@ -8,6 +8,11 @@
   <script src="js/jquery-1.11.2.js"></script>
   <script src="js/tablesorter.js"></script>
   <script>
+  /* лучше $(function () {
+    ...
+  }).
+  То же самое, но короче.
+  */
     $(document).ready(function () {
               $("#myTable").tablesorter();
             }

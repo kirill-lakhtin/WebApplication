@@ -6,6 +6,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "Products")
 @NamedNativeQuery(name = "ProductEntity.getAll", query = "SELECT c.* FROM Products c", resultClass = ProductEntity.class)
+//@NamedQuery(name="ProductEntity.getAll", query = "SELECT c FROM ProductEntity c" - тоже самое, но JPQL
 public class ProductEntity {
 
     @Id
